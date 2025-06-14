@@ -33,3 +33,13 @@ resource "aws_subnet" "main_subnet" {
     Name = "${var.tag}-Subnet"
   }
 }
+
+resource "aws_subnet" "second_subnet" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"   # 기존 서브넷과 겹치지 않게 지정
+  availability_zone       = data.aws_availability_zones.available.names[1]  # 두번째 AZ 선택
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "${var.tag}-Second-Subnet"
+  }
+}
