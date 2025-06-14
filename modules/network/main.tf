@@ -51,8 +51,8 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 resource "aws_eip" "nat" {
-  count = length(var.public_subnet_cidrs)
-  vpc   = true
+  count  = length(var.public_subnet_cidrs)
+  domain = "vpc"  # vpc 대신 domain 사용
 }
 
 resource "aws_nat_gateway" "natgw" {
