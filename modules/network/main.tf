@@ -224,6 +224,6 @@ resource "aws_vpc_endpoint_security_group_association" "kms" {
 }
 
 resource "aws_vpc_endpoint_security_group_association" "ec2_service" {
-  vpc_endpoint_id   = module.network.vpc_endpoint_ids["ec2"] # 또는 aws_vpc_endpoint.this["ec2"].id
+  vpc_endpoint_id   = aws_vpc_endpoint.this["ec2"].id # 또는 aws_vpc_endpoint.this["ec2"].id
   security_group_id = aws_security_group.service_ec2_sg.id
 }
