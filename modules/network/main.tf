@@ -152,6 +152,33 @@ resource "aws_security_group" "service_kms_sg" {
   })
 }
 
+## EC2
+resource "aws_security_group" "service_ec2_sg" {
+  name        = "${var.name_prefix}-ec2-endpoint-service-sg"
+  description = "Service SG for EC2 VPC Endpoint"
+  vpc_id      = aws_vpc.this.id # 또는 직접 vpc_id 참조
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.3.0/24"] # 원하는 CIDR로 변경
+    description = "Allow HTTPS from trusted sources"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound"
+  }
+
+  tags = {
+    Name = "${var.name_prefix}-ec2-endpoint-service-sg"
+  }
+}
+
 # 7. VPC Endpoint (for_each)
 resource "aws_vpc_endpoint" "this" {
   for_each = var.endpoint_services
@@ -194,4 +221,9 @@ resource "aws_vpc_endpoint_security_group_association" "kms" {
 
   vpc_endpoint_id   = aws_vpc_endpoint.this[each.key].id
   security_group_id = aws_security_group.service_kms_sg[0].id
+}
+
+resource "aws_vpc_endpoint_security_group_association" "ec2_service" {
+  vpc_endpoint_id   = aws_vpc_endpoint.this["ec2"].id # 또는 aws_vpc_endpoint.this["ec2"].id
+  security_group_id = aws_security_group.service_ec2_sg.id
 }
