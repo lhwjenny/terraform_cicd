@@ -19,5 +19,5 @@ output "vpc_endpoint_ids" {
 }
 
 output "service_kms_sg_id" {
-  value = length(aws_security_group.service_kms_sg) > 0 ? aws_security_group.service_kms_sg[0].id : null
+  value = module.network.service_kms_sg_id
 }
