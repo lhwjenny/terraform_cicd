@@ -65,6 +65,7 @@ locals {
     ec2        = "com.amazonaws.${var.region}.ec2"
     monitoring = "com.amazonaws.${var.region}.monitoring"
     athena     = "com.amazonaws.${var.region}.athena"
+    kms        = "com.amazonaws.${var.region}.kms"
   }
 }
 
@@ -123,6 +124,34 @@ resource "aws_security_group" "service_athena_sg" {
   })
 }
 
+## KMS
+resource "aws_security_group" "service_kms_sg" {
+  count       = contains(var.endpoint_services, var.kms_service_name) ? 1 : 0
+  name        = "${var.name_prefix}-kms-endpoint-sg"
+  description = "Service-specific SG for KMS VPC Endpoint"
+  vpc_id      = aws_vpc.this.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.kms_service_sg_ingress_cidrs
+    description = "Allow HTTPS from trusted sources"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound"
+  }
+
+  tags = merge(var.common_tags, {
+    Name = "${var.name_prefix}-kms-endpoint-sg"
+  })
+}
+
 # 7. VPC Endpoint (for_each)
 resource "aws_vpc_endpoint" "this" {
   for_each = var.endpoint_services
@@ -155,4 +184,14 @@ resource "aws_vpc_endpoint_security_group_association" "athena" {
 
   vpc_endpoint_id   = aws_vpc_endpoint.this[each.key].id
   security_group_id = aws_security_group.service_athena_sg[0].id
+}
+
+resource "aws_vpc_endpoint_security_group_association" "kms" {
+  for_each = {
+    for svc in var.endpoint_services : svc => svc
+    if svc == var.kms_service_name
+  }
+
+  vpc_endpoint_id   = aws_vpc_endpoint.this[each.key].id
+  security_group_id = aws_security_group.service_kms_sg[0].id
 }

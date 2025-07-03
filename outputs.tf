@@ -17,3 +17,7 @@ output "service_athena_sg_id" {
 output "vpc_endpoint_ids" {
   value = module.network.vpc_endpoint_ids
 }
+
+output "service_kms_sg_id" {
+  value = module.network.service_kms_sg_id
+}
