@@ -25,4 +25,6 @@ module "network" {
   common_tags              = var.common_tags
   endpoint_services        = var.endpoint_services
   athena_service_name      = var.athena_service_name
+  kms_service_name         = var.kms_service_name
+  kms_service_sg_ingress_cidrs  = var.kms_service_sg_ingress_cidrs
 }
