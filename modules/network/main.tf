@@ -156,7 +156,7 @@ resource "aws_security_group" "service_kms_sg" {
 resource "aws_security_group" "service_ec2_sg" {
   name        = "${var.name_prefix}-ec2-endpoint-service-sg"
   description = "Service SG for EC2 VPC Endpoint"
-  vpc_id      = module.network.vpc_id # 또는 직접 vpc_id 참조
+  vpc_id      = aws_vpc.this.id # 또는 직접 vpc_id 참조
 
   ingress {
     from_port   = 443
