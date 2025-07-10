@@ -15,7 +15,7 @@ resource "aws_subnet" "public" {
   count             = length(var.public_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.public_subnet_cidrs[count.index]
-  availability_zone = "${var.aws_region}a"
+  availability_zone = "${var.aws_region}${element(["a","b","c","d","e","f"], count.index)}"
 
   tags = {
     Name = "demo-public-subnet-${count.index + 1}"
@@ -64,18 +64,28 @@ resource "aws_security_group" "service_sg" {
   }
 }
 
-resource "aws_vpc_endpoint" "athena" {
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${var.aws_region}.athena"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = aws_subnet.public[*].id
-  security_group_ids  = compact([
+locals {
+  unique_az_subnets = {
+    for s in aws_subnet.public : s.availability_zone => s.id
+  }
+}
+
+resource "aws_vpc_endpoint" "interface_endpoints" {
+  for_each = var.interface_endpoints
+
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.${each.key}"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = values(local.unique_az_subnets)
+
+  security_group_ids = compact([
     aws_security_group.default_endpoint_sg.id,
-    try(aws_security_group.service_sg["athena"].id, null)
+    try(aws_security_group.service_sg[each.key].id, null)
   ])
+
   private_dns_enabled = true
 
   tags = {
-    Name = "demo-athena-endpoint"
+    Name = "demo-${each.key}-endpoint"
   }
 }
