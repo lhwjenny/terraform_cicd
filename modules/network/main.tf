@@ -1,3 +1,27 @@
+provider "aws" {
+  region = var.aws_region
+}
+
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "demo-vpc"
+  }
+}
+
+resource "aws_subnet" "public" {
+  count             = length(var.public_subnet_cidrs)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.public_subnet_cidrs[count.index]
+  availability_zone = "${var.aws_region}${element(["a","b","c","d","e","f"], count.index)}"
+
+  tags = {
+    Name = "demo-public-subnet-${count.index + 1}"
+  }
+}
+
 resource "aws_security_group" "default_endpoint_sg" {
   name   = "demo-default-endpoint-sg"
   vpc_id = aws_vpc.main.id
@@ -40,13 +64,19 @@ resource "aws_security_group" "service_sg" {
   }
 }
 
+locals {
+  unique_az_subnets = {
+    for s in aws_subnet.public : s.availability_zone => s.id
+  }
+}
+
 resource "aws_vpc_endpoint" "interface_endpoints" {
   for_each = var.interface_endpoints
 
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.aws_region}.${each.key}"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = aws_subnet.public[*].id
+  subnet_ids        = values(local.unique_az_subnets)
 
   security_group_ids = compact([
     aws_security_group.default_endpoint_sg.id,
