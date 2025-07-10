@@ -1,23 +1,11 @@
-output "vpc_id" {
-  value = module.network.vpc_id
+output "athena_endpoint_id" {
+  value = module.network.athena_endpoint_id
 }
 
-output "subnet_ids" {
-  value = module.network.subnet_ids
+output "service_sg_ids" {
+  value = module.network.service_sg_ids
 }
 
 output "default_endpoint_sg_id" {
   value = module.network.default_endpoint_sg_id
-}
-
-output "service_athena_sg_id" {
-  value = module.network.service_athena_sg_id
-}
-
-output "vpc_endpoint_ids" {
-  value = module.network.vpc_endpoint_ids
-}
-
-output "service_kms_sg_id" {
-  value = module.network.service_kms_sg_id
 }
