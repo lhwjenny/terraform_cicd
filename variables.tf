@@ -18,6 +18,11 @@ variable "services_with_service_sg" {
   default = ["athena"]
 }
 
+variable "interface_endpoints" {
+  type        = set(string)
+  description = "만들고 싶은 모든 인터페이스 엔드포인트 서비스명"
+}
+
 variable "service_sg_ingress_rules_map" {
   type = map(list(object({
     description      = string
